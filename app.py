@@ -8,6 +8,7 @@ from PySide2.QtGui import QPixmap, QFontDatabase
 
 from modules.functional_convenience import *
 from modules import constants
+from gui_modules.page_elements_setup import *
 
 
 
@@ -130,6 +131,7 @@ class entrs(QWidget):
         self.init_variables()
         self.init_ui()
         self.connecting_dots()
+        self.refresh_scroll_area(0)
     
     def __new__(cls, *args, **kwargs):
         '''Make sure only one instance is ever created.'''
@@ -167,16 +169,56 @@ class entrs(QWidget):
 
 
         # Initialise the scroll areas for the entries
-        '''self.scroll_container = QWidget()
-        self.prot_vbox = QVBoxLayout(self.scroll_container)
-        self.prot_vbox.setObjectName('vbox')'''
+        self.scroll_areas = []
+        self.scroll_containers = []
+        self.entries_vboxes = []
+        for i in range(len(self.inputs.get('accnts'))):
+            scroll_area = QScrollArea(self.ui.entrs_stacked_widget)
+            scroll_area.setObjectName(f'scroll_area{i}')
+            self.scroll_areas.append(scroll_area)
+
+            scroll_container = QWidget(scroll_area)
+            scroll_container.setObjectName(f'scroll_container_{i}')
+            self.scroll_containers.append(scroll_container)
+
+            entries_vbox = QVBoxLayout(scroll_container)
+            entries_vbox.setObjectName(f'vbox_{i}')
+            self.entries_vboxes.append(entries_vbox)
+
+            self.ui.entrs_stacked_widget.addWidget(scroll_area)
+        self.ui.entrs_stacked_widget.setCurrentWidget(self.scroll_areas[0])
+
+
+
+    def refresh_scroll_area(self, accnt_index):
+        ''' Refresh the scrolled widgets 
+            accnt_index: index of the target account'''
+        self.scroll_containers[accnt_index].destroy()
+        self.scroll_containers[accnt_index] = QWidget()
+        self.entries_vboxes[accnt_index] = QVBoxLayout(self.scroll_containers[accnt_index])
+
+        entries = list(constants.db.entries_collection.find({'account': '未指定'}))
+        for entry in entries:
+            entry_date = entry.get('date')
+            entry_amount = entry.get('amount')
+            row = RowWidget([entry_date, entry_amount], (50, 50, 50), 1, self)
+            self.entries_vboxes[accnt_index].addWidget(row)
+        self.entries_vboxes[accnt_index].setSpacing(0)
+
+        self.scroll_areas[accnt_index].update()
+
+        self.scroll_areas[accnt_index].setWidgetResizable(True)
+        self.scroll_areas[accnt_index].setStyleSheet('background-color:blue;')
+        print('set')
+        self.scroll_areas[accnt_index].setWidget(self.scroll_containers[accnt_index])
+        self.ui.entrs_stacked_widget.setCurrentWidget(self.scroll_areas[0])
 
 
 
     def connecting_dots(self):
         page_ready.sig.connect(self.on_page_load)
         self.ui.accnt_0_rbtn.clicked.connect(lambda:
-                print('pass'))
+                self.refresh_scroll_area(0))
     
     
 
