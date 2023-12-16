@@ -1,0 +1,64 @@
+/* Default settings for a page */
+QPushButton, QRadioButton, QLabel, QLineEdit, QDateTimeEdit {
+    font-family: LINE Seed Sans, LINE Seed Sans;
+}
+
+#page {
+    font-size: 25px;
+    background: white;
+}
+
+QPushButton {
+    color: white;
+    font-size: 28px;
+
+
+    background: rgb(245, 128, 37);
+    border-radius: 5px;
+}
+
+QPushButton:pressed {
+    background: rgb(172, 90, 30);
+}
+
+#main_menu_btn, #ok_btn, #run_btn, #run_prot_btn, #continue_btn,
+#resume_btn, #start_btn, #dispense_btn_1, #dispense_btn_2,
+#cal_btn_1, #cal_btn_2 {
+    background-color:green;
+}
+
+#main_menu_btn:pressed, #ok_btn:pressed, 
+#run_btn:pressed, #run_prot_btn:pressed, #continue_btn:pressed,
+#resume_btn:pressed, #start_btn:pressed, #dispense_btn_1:pressed,
+#dispense_btn_2:pressed, #cal_btn_1:pressed, #cal_btn_2:pressed  {
+    background-color:rgb(0, 110, 0);
+}
+
+#abort_btn, #to_abort_btn, #stop_btn, #delete_btn, #to_delete_btn {
+    background-color:red;
+}
+
+#abort_btn:pressed, #to_abort_btn:pressed, 
+#stop_btn:pressed, #delete_btn:pressed,
+#to_delete_btn:pressed {
+    background-color:rgb(110, 0, 0);
+}
+
+QLabel, QRadioButton, QCheckBox, QLineEdit{
+    font-size: 21px;
+}
+
+QCheckBox::indicator{
+    width:28px; 
+    height: 28px;
+}
+
+QRadioButton::indicator {
+    width:22px; 
+    height: 22px;
+}
+
+#title_lbl {
+    font-size: 32px;
+    font-weight: bold;
+}
