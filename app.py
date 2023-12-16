@@ -131,7 +131,6 @@ class entrs(QWidget):
         self.init_variables()
         self.init_ui()
         self.connecting_dots()
-        self.refresh_scroll_area(0)
     
     def __new__(cls, *args, **kwargs):
         '''Make sure only one instance is ever created.'''
@@ -157,7 +156,7 @@ class entrs(QWidget):
         # Add a rbtn for each account
         self.accnt_rbtns = []
         self.accnts_btn_group = QButtonGroup(self.ui)     # Accounts button group
-        self.accnts_btn_group.addButton(self.ui.accnt_0_rbtn)
+        self.accnts_btn_group.addButton(self.ui.accnt_0_rbtn, 0)
         i = 0
         for accnt in self.inputs.get('accnts'):
             i += 1
@@ -165,14 +164,14 @@ class entrs(QWidget):
             accnt_rbtn.setObjectName(f'accnt_{i}_rbtn')
             self.accnt_rbtns.append(accnt_rbtn)
             self.ui.accnt_rbtns_hbox.addWidget(accnt_rbtn)
-            self.accnts_btn_group.addButton(accnt_rbtn)
+            self.accnts_btn_group.addButton(accnt_rbtn, i)
 
 
         # Initialise the scroll areas for the entries
         self.scroll_areas = []
         self.scroll_containers = []
         self.entries_vboxes = []
-        for i in range(len(self.inputs.get('accnts'))):
+        for i in range(len(self.inputs.get('accnts'))+1):
             scroll_area = QScrollArea(self.ui.entrs_stacked_widget)
             scroll_area.setObjectName(f'scroll_area{i}')
             self.scroll_areas.append(scroll_area)
@@ -186,39 +185,54 @@ class entrs(QWidget):
             self.entries_vboxes.append(entries_vbox)
 
             self.ui.entrs_stacked_widget.addWidget(scroll_area)
+
+            self.refresh_scroll_area(i+1)
+        self.refresh_scroll_area(0)
         self.ui.entrs_stacked_widget.setCurrentWidget(self.scroll_areas[0])
 
 
 
+
     def refresh_scroll_area(self, accnt_index):
-        ''' Refresh the scrolled widgets 
-            accnt_index: index of the target account'''
+        ''' Refresh the scrolled widgets. 
+            accnt_index: index of the target account
+            accnt_index = 0 for all_accounts-view.'''
+        accnt_index -= 1
         self.scroll_containers[accnt_index].destroy()
         self.scroll_containers[accnt_index] = QWidget()
         self.entries_vboxes[accnt_index] = QVBoxLayout(self.scroll_containers[accnt_index])
 
-        entries = list(constants.db.entries_collection.find({'account': '未指定'}))
+        if accnt_index == -1:
+            entries = list(constants.db.entries_collection.find())
+        else:
+            entries = list(constants.db.entries_collection.find({'account': self.inputs.get('accnts')[accnt_index-1]}))
         for entry in entries:
             entry_date = entry.get('date')
             entry_amount = entry.get('amount')
-            row = RowWidget([entry_date, entry_amount], (50, 50, 50), 1, self)
+            row = RowWidget([entry_date, entry_amount], (50, 500, 100), 1, self)
             self.entries_vboxes[accnt_index].addWidget(row)
         self.entries_vboxes[accnt_index].setSpacing(0)
 
         self.scroll_areas[accnt_index].update()
 
         self.scroll_areas[accnt_index].setWidgetResizable(True)
-        self.scroll_areas[accnt_index].setStyleSheet('background-color:blue;')
-        print('set')
         self.scroll_areas[accnt_index].setWidget(self.scroll_containers[accnt_index])
-        self.ui.entrs_stacked_widget.setCurrentWidget(self.scroll_areas[0])
+
+
 
 
 
     def connecting_dots(self):
         page_ready.sig.connect(self.on_page_load)
-        self.ui.accnt_0_rbtn.clicked.connect(lambda:
-                self.refresh_scroll_area(0))
+        print(self.accnts_btn_group.button(0))
+        self.accnts_btn_group.button(0).clicked.connect(lambda:
+                self.ui.entrs_stacked_widget.setCurrentWidget(self.scroll_areas[0]))
+        self.accnts_btn_group.button(1).clicked.connect(lambda:
+                self.ui.entrs_stacked_widget.setCurrentWidget(self.scroll_areas[1]))
+        self.accnts_btn_group.button(2).clicked.connect(lambda:
+                self.ui.entrs_stacked_widget.setCurrentWidget(self.scroll_areas[2]))
+        self.accnts_btn_group.button(3).clicked.connect(lambda:
+                self.ui.entrs_stacked_widget.setCurrentWidget(self.scroll_areas[3]))
     
     
 
