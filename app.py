@@ -140,10 +140,8 @@ class entrs(QWidget):
 
 
     def init_variables(self):
-        ''' Initialises pages and the input buffer. '''
-        self.pages = {'entrs':entrs(),
-                      'stats':stats()}
-
+        ''' Initialises pages and/or the input buffer. '''
+        self.inputs = {'accnts':constants.accnts}
 
 
     def init_ui(self):
@@ -153,22 +151,25 @@ class entrs(QWidget):
         self.ui = loader.load(file, self)
         file.close()
 
+
+        # Add a rbtn for each account
+        self.accnt_rbtns = []
         self.accnts_btn_group = QButtonGroup(self.ui)     # Accounts button group
         self.accnts_btn_group.addButton(self.ui.accnt_0_rbtn)
-        self.accnts_btn_group.addButton(self.ui.accnt_1_rbtn)
-        self.accnts_btn_group.addButton(self.ui.accnt_2_rbtn)
+        i = 0
+        for accnt in self.inputs.get('accnts'):
+            i += 1
+            accnt_rbtn = QRadioButton(accnt)
+            accnt_rbtn.setObjectName(f'accnt_{i}_rbtn')
+            self.accnt_rbtns.append(accnt_rbtn)
+            self.ui.accnt_rbtns_hbox.addWidget(accnt_rbtn)
+            self.accnts_btn_group.addButton(accnt_rbtn)
 
-
-        for page_name, page in self.pages.items():
-            self.ui.home_stacked_widget.addWidget(page.ui)
-        
-        # Default display the Entries page
-        self.ui.home_stacked_widget.setCurrentWidget(self.pages.get('entrs').ui)
 
         # Initialise the scroll areas for the entries
-        self.scroll_container = QWidget()
+        '''self.scroll_container = QWidget()
         self.prot_vbox = QVBoxLayout(self.scroll_container)
-        self.prot_vbox.setObjectName('vbox')
+        self.prot_vbox.setObjectName('vbox')'''
 
 
 

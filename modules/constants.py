@@ -1,6 +1,11 @@
 import json, threading
 from PySide2.QtCore import QObject, Signal
 
+# Setup mongo client
+from pymongo import MongoClient
+client = MongoClient('mongodb://localhost:27017/')
+db = client.entries
+
 
 
 save_settings = True   # For debugging only: set to True for customer machines.
@@ -34,11 +39,12 @@ def sys_stng_interface(var_name, new_val=None, recalculate:tuple=None):
             json.dump(settings, f, indent=4)
 
 
-# To record the accounts
-num_of_accnts = 0
-def accnts(new_val=None):
-    return sys_stng_interface('accounts', new_val)
-num_of_accnts = len(accnts())
+# List of accounts
+accnts = []
+def update_accnts():
+    global accnts
+    accnts = db.entries_collection.distinct('account')
+update_accnts()
 
 
 
