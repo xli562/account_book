@@ -10,10 +10,6 @@ backup_sys_stngs_path = './files/system_settings/sys_stngs backup.json'
 
 
 
-sys_stng_vars = ('heating_enabled', 'nitrogen_mixing_enabled', 'uv_enabled',
-                 'deflt_mixr', 'current_rv')
-
-
 def sys_stng_interface(var_name, new_val=None, recalculate:tuple=None):
     ''' Read/write data from/to sys_stngs.json, so that the 
     machine remembers its settings when powered off.
@@ -38,9 +34,11 @@ def sys_stng_interface(var_name, new_val=None, recalculate:tuple=None):
             json.dump(settings, f, indent=4)
 
 
-# For hiding / showing relevant options in config pages
-def heating_enabled(new_val=None):
-    return sys_stng_interface('heating_enabled', new_val)
+# To record the accounts
+num_of_accnts = 0
+def accnts(new_val=None):
+    return sys_stng_interface('accounts', new_val)
+num_of_accnts = len(accnts())
 
 
 

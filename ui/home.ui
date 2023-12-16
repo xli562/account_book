@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>home</class>
+ <widget class="QWidget" name="home">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,58 +11,86 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Home</string>
   </property>
-  <widget class="QRadioButton" name="radioButton">
+  <widget class="QRadioButton" name="entrs_rbtn">
    <property name="geometry">
     <rect>
-     <x>130</x>
-     <y>1080</y>
-     <width>86</width>
-     <height>16</height>
+     <x>0</x>
+     <y>1130</y>
+     <width>200</width>
+     <height>70</height>
     </rect>
    </property>
    <property name="text">
-    <string>RadioButton</string>
+    <string>明细</string>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
    </property>
   </widget>
-  <widget class="QRadioButton" name="radioButton_2">
+  <widget class="QStackedWidget" name="home_stacked_widget">
    <property name="geometry">
     <rect>
-     <x>290</x>
-     <y>1080</y>
-     <width>86</width>
-     <height>16</height>
+     <x>0</x>
+     <y>0</y>
+     <width>1000</width>
+     <height>1130</height>
+    </rect>
+   </property>
+   <widget class="QWidget" name="page"/>
+   <widget class="QWidget" name="page_2"/>
+  </widget>
+  <widget class="QRadioButton" name="stats_rbtn">
+   <property name="geometry">
+    <rect>
+     <x>200</x>
+     <y>1130</y>
+     <width>200</width>
+     <height>70</height>
     </rect>
    </property>
    <property name="text">
-    <string>RadioButton</string>
+    <string>图表</string>
    </property>
   </widget>
-  <widget class="QRadioButton" name="radioButton_3">
+  <widget class="QRadioButton" name="disc_rbtn">
    <property name="geometry">
     <rect>
-     <x>460</x>
-     <y>1080</y>
-     <width>86</width>
-     <height>16</height>
+     <x>600</x>
+     <y>1130</y>
+     <width>200</width>
+     <height>70</height>
     </rect>
    </property>
    <property name="text">
-    <string>RadioButton</string>
+    <string>发现</string>
    </property>
   </widget>
-  <widget class="QRadioButton" name="radioButton_4">
+  <widget class="QRadioButton" name="my_rbtn">
    <property name="geometry">
     <rect>
-     <x>650</x>
-     <y>1080</y>
-     <width>86</width>
-     <height>16</height>
+     <x>800</x>
+     <y>1130</y>
+     <width>200</width>
+     <height>70</height>
     </rect>
    </property>
    <property name="text">
-    <string>RadioButton</string>
+    <string>我的</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="add_btn">
+   <property name="geometry">
+    <rect>
+     <x>400</x>
+     <y>1130</y>
+     <width>200</width>
+     <height>70</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>记账</string>
    </property>
   </widget>
  </widget>

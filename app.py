@@ -6,6 +6,7 @@ from PySide2.QtUiTools import *
 from PySide2.QtGui import QPixmap, QFontDatabase
 
 
+from modules.functional_convenience import *
 from modules import constants
 
 
@@ -55,13 +56,15 @@ def navigate_back(src_page, ret_to_page, src_btn, extras:dict=None):
 
 
 class home(QWidget):
-    ''' Input: Initial page.
+    ''' The home page which shows upon opening of app.
+        Input: Initial page.
         Output: Buttons navigate to different pages.
                 No data output.
     '''
     def __init__(self):
         super().__init__()
         self.name = 'home'
+        self.init_variables()
         self.init_ui()
         self.connecting_dots()
 
@@ -70,6 +73,15 @@ class home(QWidget):
         if not hasattr(cls, '_instance'):
             cls._instance = super(home, cls).__new__(cls, *args, **kwargs)
         return cls._instance
+
+
+
+    def init_variables(self):
+        ''' Initialises pages and the input buffer. '''
+        self.pages = {'entrs':entrs(),
+                      'stats':stats()}
+
+
 
     def init_ui(self):
         loader = QUiLoader()
@@ -81,53 +93,138 @@ class home(QWidget):
         layout = QVBoxLayout(self)
         layout.addWidget(self.ui)
 
-        # The logo img_lbl
-        # pixmap = QPixmap("./ui/resources/logo.png")
-        # self.ui.img_lbl.setPixmap(pixmap.scaled(self.ui.img_lbl.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
-        # self.ui.img_lbl.setScaledContents(True)
-    
+
+        self.nav_btn_group = QButtonGroup(self.ui)  # Bottom navigation button group
+        self.nav_btn_group.addButton(self.ui.entrs_rbtn)
+        self.nav_btn_group.addButton(self.ui.stats_rbtn)
+        self.nav_btn_group.addButton(self.ui.disc_rbtn)
+        self.nav_btn_group.addButton(self.ui.my_rbtn)
+
+
+        for page_name, page in self.pages.items():
+            self.ui.home_stacked_widget.addWidget(page.ui)
+        
+        # Default display the Entries page
+        self.ui.home_stacked_widget.setCurrentWidget(self.pages.get('entrs').ui)
+
+
 
     def connecting_dots(self):
         '''connecting signals and slots'''
-        # def on_new_syn_btn_click():
-        #     constants.rerun_or_open_syn = False
-        #     navigate(self.name, 'edit_seq', self.name, 'new_syn_btn')
-        #     self.cnfrm_fluids_alctn_instance = cnfrm_fluid_alctn(self)
-        #     self.cnfrm_fluids_alctn_instance.setAttribute(Qt.WA_DeleteOnClose)
-        #     self.cnfrm_fluids_alctn_instance.exec_()
+        self.ui.entrs_rbtn.clicked.connect(lambda:
+                self.ui.home_stacked_widget.setCurrentWidget(self.pages.get('entrs').ui))
+        self.ui.stats_rbtn.clicked.connect(lambda:
+                self.ui.home_stacked_widget.setCurrentWidget(self.pages.get('stats').ui))
 
-        # self.ui.new_syn_btn.clicked.connect(on_new_syn_btn_click)
+
+
+
+class entrs(QWidget):
+    ''' Entries, 明细页。
+        Input: 
+        Output:
+    '''
+    def __init__(self):
+        super().__init__()
+        self.name = 'entrs'
+        self.init_variables()
+        self.init_ui()
+        self.connecting_dots()
+    
+    def __new__(cls, *args, **kwargs):
+        '''Make sure only one instance is ever created.'''
+        if not hasattr(cls, '_instance'):
+            cls._instance = super(entrs, cls).__new__(cls, *args, **kwargs)
+        return cls._instance
+
+
+
+    def init_variables(self):
+        ''' Initialises pages and the input buffer. '''
+        self.pages = {'entrs':entrs(),
+                      'stats':stats()}
+
+
+
+    def init_ui(self):
+        loader = QUiLoader()
+        file = QFile(f'./ui/entrs/{self.name}.ui')
+        file.open(QFile.ReadOnly)
+        self.ui = loader.load(file, self)
+        file.close()
+
+        self.accnts_btn_group = QButtonGroup(self.ui)     # Accounts button group
+        self.accnts_btn_group.addButton(self.ui.accnt_0_rbtn)
+        self.accnts_btn_group.addButton(self.ui.accnt_1_rbtn)
+        self.accnts_btn_group.addButton(self.ui.accnt_2_rbtn)
+
+
+        for page_name, page in self.pages.items():
+            self.ui.home_stacked_widget.addWidget(page.ui)
         
-        # def on_open_syn_btn_click():
-        #     # Select the synthesis file in the file dialog, 
-        #     # then go to edit_seq.
-        #     if constants.on_linux:
-        #         subprocess.Popen(['onboard'])
-        #     file_sel = QFileDialog()
-        #     options = file_sel.Options()
-        #     options |= file_sel.ReadOnly
-        #     filename, _ = file_sel.getOpenFileName(None, 'Select a synthesis file', './files/synthesis_parameters', 'All Files (*)', options=options)
-        #     if filename:
-        #         pickle_data = marinate(filename)
-        #         constants.syn_config = pickle_data[0]
-        #         constants.syn_data = pickle_data[1]
+        # Default display the Entries page
+        self.ui.home_stacked_widget.setCurrentWidget(self.pages.get('entrs').ui)
 
-        #         constants.rerun_or_open_syn = True
-        #         navigate(self.name, 'edit_seq', self.name, 'open_syn_btn')
-        #         self.cnfrm_fluids_alctn_instance = cnfrm_fluid_alctn(self)
-        #         self.cnfrm_fluids_alctn_instance.setAttribute(Qt.WA_DeleteOnClose)
-        #         self.cnfrm_fluids_alctn_instance.exec_()
+        # Initialise the scroll areas for the entries
+        self.scroll_container = QWidget()
+        self.prot_vbox = QVBoxLayout(self.scroll_container)
+        self.prot_vbox.setObjectName('vbox')
 
-        #     if constants.on_linux:
-        #         subprocess.call(['pkill', 'onboard'])
-            
-        # self.ui.open_syn_btn.clicked.connect(on_open_syn_btn_click)
 
-        # self.ui.manual_comm_btn.clicked.connect(lambda: 
-        #     navigate(self.name, 'manual_comm', self.name, 'manual_comm_btn'))
-        
-        # self.ui.sys_stngs_btn.clicked.connect(lambda: 
-            # navigate(self.name, 'sys_stngs', self.name, 'sys_stngs_btn'))
+
+    def connecting_dots(self):
+        page_ready.sig.connect(self.on_page_load)
+        self.ui.accnt_0_rbtn.clicked.connect(lambda:
+                print('pass'))
+    
+    
+
+    def on_page_load(self):
+        if constants.navigation_info.get('dest_page') == self.name:
+            pass
+
+
+
+
+class stats(QWidget):
+    ''' Statistics and chatrs, 统计信息与图表。
+        Input: 
+        Output:
+    '''
+    def __init__(self):
+        super().__init__()
+        self.name = 'stats'
+        self.init_ui()
+        self.connecting_dots()
+    
+    def __new__(cls, *args, **kwargs):
+        '''Make sure only one instance is ever created.'''
+        if not hasattr(cls, '_instance'):
+            cls._instance = super(stats, cls).__new__(cls, *args, **kwargs)
+        return cls._instance
+
+
+
+    def init_ui(self):
+        loader = QUiLoader()
+        file = QFile(f'./ui/stats/{self.name}.ui')
+        file.open(QFile.ReadOnly)
+        self.ui = loader.load(file, self)
+        file.close()
+
+
+
+    def connecting_dots(self):
+        page_ready.sig.connect(self.on_page_load)
+    
+    
+
+    def on_page_load(self):
+        if constants.navigation_info.get('dest_page') == self.name:
+            pass   
+
+
+
 
 
 
