@@ -2,3 +2,5 @@ account_book
 activate_venv.bat
 files/database
 tests
+start_mongod.bat
+activate_venv.bat
