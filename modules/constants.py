@@ -5,6 +5,7 @@ from PySide2.QtCore import QObject, Signal
 from pymongo import MongoClient
 client = MongoClient('mongodb://localhost:27017/')
 db = client.entries
+collection = db.entries_collection
 
 
 

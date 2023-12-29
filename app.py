@@ -1,4 +1,5 @@
 import os, sys, time, json, copy, subprocess, glob, shutil
+from datetime import *
 
 from PySide2.QtCore import *
 from PySide2.QtWidgets import *
@@ -217,27 +218,43 @@ class entrs(QWidget):
 
             self.ui.entrs_stacked_widget.addWidget(scroll_area)
 
-            self.refresh_scroll_area(i+1)
-        self.refresh_scroll_area(0)
+            self.refresh_scroll_area(i)
         self.ui.entrs_stacked_widget.setCurrentWidget(self.scroll_areas[0])
 
 
 
-
-    def refresh_scroll_area(self, accnt_index):
+    def refresh_scroll_area(self, accnt_index, year_index=datetime.now().year, month_index=datetime.now().month):
         ''' Refresh the scrolled widgets. 
             accnt_index: index of the target account, as stored in constants.accnts
             accnt_index = 0 for all_accounts-view.'''
-        accnt_index -= 1
         self.scroll_containers[accnt_index].destroy()
         self.scroll_containers[accnt_index] = QWidget()
         self.entries_vboxes[accnt_index] = QVBoxLayout(self.scroll_containers[accnt_index])
 
-        if accnt_index == -1:
+        def find_entrs(account, year, month) -> list:
+            ''' Finds entries for a given account within a natural month. 
+                Returns a list of documents. '''
+            # Start and end dates for the month
+            start_date = datetime(year, month, 1)
+            if month == 12:
+                end_date = datetime(year + 1, 1, 1)  # Handle December case
+            else:
+                end_date = datetime(year, month + 1, 1)
+
+            # Query for documents with the specified account and date range
+            query = {
+                "account": account,
+                "date": {"$gte": start_date, "$lt": end_date}
+            }
+
+            return list(constants.collection.find(query))
+
+        if accnt_index == 0:
             entries = list(constants.db.entries_collection.find())
         else:
-            entries = list(constants.db.entries_collection.find(
-                           {'account': self.inputs.get('accnts')[accnt_index-1]}))
+            entries = find_entrs(self.inputs.get('accnts')[accnt_index-1], year_index, month_index)
+
+        # Populate the rows
         for entry in entries:
             entry_date = entry.get('date')
             entry_amount = entry.get('amount')
