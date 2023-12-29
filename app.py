@@ -144,6 +144,37 @@ class entrs(QWidget):
         ''' Initialises pages and/or the input buffer. '''
         self.inputs = {'accnts':constants.accnts}
 
+        def calculate_sums() -> dict:
+            ''' 计算并以字典形式返回账户及其对应收支 '''
+            for accnt in self.inputs.get('accnts'):
+                summing_pipeline = [
+                    {
+                        "$match": {
+                            "account": accnt,
+                            "transaction_type": "收入"
+                        }
+                    },  # Match documents with 'account'='HSBC' and 'transaction_type'='income'
+                    {
+                        "$group": {
+                            "_id": None,
+                            "total_amount": {"$sum": "$amount"}
+                        }
+                    }  # Sum the 'amount' for matched documents
+                ]
+                # Perform aggregation
+                result = constants.db.entries_collection.aggregate(summing_pipeline)
+
+                # Print the result
+                for doc in result:
+                    print(f"Total amount: {doc['total_amount']}")
+                # total_amounts = {}
+                # for doc in result:
+                #     total_amounts[1] = doc['total_amount']
+                # return total_amounts
+        print(calculate_sums())
+        self.cache = {
+            'total_amounts':{}}
+
 
     def init_ui(self):
         loader = QUiLoader()
@@ -171,7 +202,7 @@ class entrs(QWidget):
         self.scroll_areas = []
         self.scroll_containers = []
         self.entries_vboxes = []
-        for i in range(len(self.inputs.get('accnts'))+1):
+        for i in range(len(self.inputs.get('accnts'))+1):   # '+1' to accommodate the overall view.
             scroll_area = QScrollArea(self.ui.entrs_stacked_widget)
             scroll_area.setObjectName(f'scroll_area{i}')
             self.scroll_areas.append(scroll_area)
@@ -181,7 +212,7 @@ class entrs(QWidget):
             self.scroll_containers.append(scroll_container)
 
             entries_vbox = QVBoxLayout(scroll_container)
-            entries_vbox.setObjectName(f'vbox_{i}')
+            entries_vbox.setObjectName(f'scrolled_vbox_{i}')
             self.entries_vboxes.append(entries_vbox)
 
             self.ui.entrs_stacked_widget.addWidget(scroll_area)
@@ -195,7 +226,7 @@ class entrs(QWidget):
 
     def refresh_scroll_area(self, accnt_index):
         ''' Refresh the scrolled widgets. 
-            accnt_index: index of the target account
+            accnt_index: index of the target account, as stored in constants.accnts
             accnt_index = 0 for all_accounts-view.'''
         accnt_index -= 1
         self.scroll_containers[accnt_index].destroy()
@@ -205,7 +236,8 @@ class entrs(QWidget):
         if accnt_index == -1:
             entries = list(constants.db.entries_collection.find())
         else:
-            entries = list(constants.db.entries_collection.find({'account': self.inputs.get('accnts')[accnt_index-1]}))
+            entries = list(constants.db.entries_collection.find(
+                           {'account': self.inputs.get('accnts')[accnt_index-1]}))
         for entry in entries:
             entry_date = entry.get('date')
             entry_amount = entry.get('amount')
@@ -225,14 +257,10 @@ class entrs(QWidget):
     def connecting_dots(self):
         page_ready.sig.connect(self.on_page_load)
         print(self.accnts_btn_group.button(0))
-        self.accnts_btn_group.button(0).clicked.connect(lambda:
-                self.ui.entrs_stacked_widget.setCurrentWidget(self.scroll_areas[0]))
-        self.accnts_btn_group.button(1).clicked.connect(lambda:
-                self.ui.entrs_stacked_widget.setCurrentWidget(self.scroll_areas[1]))
-        self.accnts_btn_group.button(2).clicked.connect(lambda:
-                self.ui.entrs_stacked_widget.setCurrentWidget(self.scroll_areas[2]))
-        self.accnts_btn_group.button(3).clicked.connect(lambda:
-                self.ui.entrs_stacked_widget.setCurrentWidget(self.scroll_areas[3]))
+        def on_accnts_btn_group_click():
+            btn_id = self.accnts_btn_group.checkedId()
+            self.ui.entrs_stacked_widget.setCurrentWidget(self.scroll_areas[btn_id])
+        self.accnts_btn_group.buttonClicked.connect(on_accnts_btn_group_click)
     
     
 
