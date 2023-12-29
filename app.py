@@ -172,7 +172,6 @@ class entrs(QWidget):
                 # for doc in result:
                 #     total_amounts[1] = doc['total_amount']
                 # return total_amounts
-        print(calculate_sums())
         self.cache = {
             'total_amounts':{}}
 
@@ -242,23 +241,35 @@ class entrs(QWidget):
                 end_date = datetime(year, month + 1, 1)
 
             # Query for documents with the specified account and date range
-            query = {
-                "account": account,
-                "date": {"$gte": start_date, "$lt": end_date}
-            }
+            if account is None:
+                query = {"date": {"$gte": start_date, "$lt": end_date}}
+            else:
+                query = {
+                    "account": account,
+                    "date": {"$gte": start_date, "$lt": end_date}
+                }
 
             return list(constants.collection.find(query))
 
         if accnt_index == 0:
-            entries = list(constants.db.entries_collection.find())
+            entries = find_entrs(None, year_index, month_index)
         else:
             entries = find_entrs(self.inputs.get('accnts')[accnt_index-1], year_index, month_index)
+        entries.reverse()   # Reverse the list of entries so that it's in time descending order
 
         # Populate the rows
+        entry_date = datetime(3000,1,1)
+        ROW_HEIGHT = 50
         for entry in entries:
-            entry_date = entry.get('date')
-            entry_amount = entry.get('amount')
-            row = RowWidget([entry_date, entry_amount], (50, 500, 100), 1, self)
+            if entry_date > entry.get('date'):
+                entry_date = entry.get('date')
+                row = RowWidget([f'{entry_date.month}月{entry_date.day}日 {constants.days_of_the_week[entry_date.weekday()]}'], (ROW_HEIGHT, 500), 2, self)
+                self.entries_vboxes[accnt_index].addWidget(row)
+
+            entry_category = entry.get('category')
+            entry_remarks = entry.get('remarks')
+            entry_amount = entry.get('amount') * -(entry.get('transaction_type') == '支出')
+            row = RowWidget([entry_category, entry_remarks, entry_amount], (ROW_HEIGHT, 100, 500, 100), 1, self)
             self.entries_vboxes[accnt_index].addWidget(row)
         self.entries_vboxes[accnt_index].setSpacing(0)
 
@@ -273,10 +284,51 @@ class entrs(QWidget):
 
     def connecting_dots(self):
         page_ready.sig.connect(self.on_page_load)
-        print(self.accnts_btn_group.button(0))
         def on_accnts_btn_group_click():
             btn_id = self.accnts_btn_group.checkedId()
             self.ui.entrs_stacked_widget.setCurrentWidget(self.scroll_areas[btn_id])
+
+            # Update 收支数字显示
+            def sum_income_expenditure(account, year=datetime.now().year, month=datetime.now().month):
+                ''' Copied from ChatGPT. Works well. '''
+                # Start and end dates for the month
+                start_date = datetime(year, month, 1)
+                end_date = datetime(year + 1, 1, 1) if month == 12 else datetime(year, month + 1, 1)
+
+                # Base query
+                base_query = {"date": {"$gte": start_date, "$lt": end_date}}
+                if account is not None:
+                    base_query["account"] = account
+
+                # Aggregation pipeline
+                pipeline = [
+                    {"$match": base_query},
+                    {"$group": {
+                        "_id": "$transaction_type",
+                        "total": {"$sum": "$amount"}
+                    }}
+                ]
+
+                # Perform aggregation
+                result = constants.collection.aggregate(pipeline)
+
+                # Initialize sums
+                income_sum = 0
+                expenditure_sum = 0
+
+                # Calculate sums
+                for entry in result:
+                    if entry["_id"] == "收入":  # Assuming "收入" is the identifier for income
+                        income_sum = entry["total"]
+                    elif entry["_id"] == "支出":  # Assuming "支出" is the identifier for expenditure
+                        expenditure_sum = entry["total"]
+
+                return income_sum, expenditure_sum
+            accnt = None if btn_id == 0 else self.inputs.get('accnts')[btn_id - 1]
+            income, expenditure = sum_income_expenditure(accnt)
+            self.ui.incomes_btn.setText(f'收入\n{income}')
+            self.ui.expenditures_btn.setText(f'支出\n{expenditure}')
+
         self.accnts_btn_group.buttonClicked.connect(on_accnts_btn_group_click)
     
     

@@ -7,6 +7,8 @@ client = MongoClient('mongodb://localhost:27017/')
 db = client.entries
 collection = db.entries_collection
 
+days_of_the_week = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日']
+
 
 
 save_settings = True   # For debugging only: set to True for customer machines.

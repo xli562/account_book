@@ -128,7 +128,7 @@
 12月</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_3">
+  <widget class="QPushButton" name="incomes_btn">
    <property name="geometry">
     <rect>
      <x>160</x>
@@ -142,7 +142,7 @@
 111.11</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_4">
+  <widget class="QPushButton" name="expenditures_btn">
    <property name="geometry">
     <rect>
      <x>360</x>
