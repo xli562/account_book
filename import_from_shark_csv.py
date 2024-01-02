@@ -42,7 +42,10 @@ for index, row in df.iterrows():
         'amount': row['金额'],
         'remarks': row['备注'],
         'account': '未指定',
-        'currency': '未指定'
+        'currency': '未指定',
+        'details': '',
+        'time':'',
+        'location':[],
     }
     db.entries_collection.insert_one(document)
 

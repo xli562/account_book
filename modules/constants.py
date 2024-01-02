@@ -17,7 +17,6 @@ backup_sys_stngs_path = './files/system_settings/sys_stngs backup.json'
 
 
 
-
 def sys_stng_interface(var_name, new_val=None, recalculate:tuple=None):
     ''' Read/write data from/to sys_stngs.json, so that the 
     machine remembers its settings when powered off.
@@ -43,11 +42,16 @@ def sys_stng_interface(var_name, new_val=None, recalculate:tuple=None):
 
 
 # List of accounts
-accnts = []
-def update_accnts():
-    global accnts
-    accnts = db.entries_collection.distinct('account')
-update_accnts()
+def accnts(new_val=None):
+    ''' eg ['HSBC(7476)', '微信零钱', '现金'] '''
+    return sys_stng_interface('accnts', new_val)
+accnts(collection.distinct('account'))
+
+# List of currencies
+def currs(new_val=None):
+    ''' eg ['CNY', 'GBP', 'EUR'] '''
+    return sys_stng_interface('currs', new_val)
+currs(collection.distinct('currency'))
 
 
 

@@ -1,4 +1,21 @@
 from modules import constants
+import datetime as dt
+from calendar import monthrange
+
+
+
+
+
+def start_and_end_of_month(day:dt.datetime) -> tuple:
+    ''' Takes a datetime object,
+        Returns start and end of the natural month. '''
+    start_of_month = dt.datetime(day.year, day.month, 1)
+    end_of_month_day = monthrange(day.year, day.month)[1]
+    end_of_month = dt.datetime(day.year, day.month, end_of_month_day)
+
+    return (start_of_month, end_of_month)
+
+
 
 
 def colour_print(colour:str, text:str, to_screen=False):
