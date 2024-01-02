@@ -241,11 +241,7 @@ class entrs(QWidget):
             ''' Finds entries for a given account within a natural month. 
                 Returns a list of documents. '''
             # Start and end dates for the month
-            start_date = dt.datetime(year, month, 1)
-            if month == 12:
-                end_date = dt.datetime(year + 1, 1, 1)  # Handle December case
-            else:
-                end_date = dt.datetime(year, month + 1, 1)
+            start_date, end_date = start_and_end_of_month(dt.datetime(year, month, 1))
 
             # Query for documents with the specified account and date range
             if account is None:
@@ -271,9 +267,10 @@ class entrs(QWidget):
             # Insert day-marking row.
             if entry_date > entry.get('date'):
                 entry_date = entry.get('date')
+                # TODO: 显示账户的日结余
                 daily_balance = self.calculate_sums(accnt, dt.datetime(2000,1,1), entry_date, self.cache['curr'])
                 row = RowWidget([f'{entry_date.month}月{entry_date.day}日 {constants.days_of_the_week[entry_date.weekday()]}',
-                                round(daily_balance[0] - daily_balance[1], 2)], 
+                                 daily_balance], 
                                 (ROW_HEIGHT, 500, 200), 
                                 2, 
                                 self)
@@ -281,7 +278,7 @@ class entrs(QWidget):
 
             entry_category = entry.get('category')
             entry_remarks = entry.get('remarks')
-            entry_amount = entry.get('amount') * -(entry.get('transaction_type') == '支出')
+            entry_amount = entry.get('amount') if entry.get('transaction_type') == '收入' else -entry.get('amount')
             row = RowWidget([entry_category, entry_remarks, entry_amount], (ROW_HEIGHT, 100, 500, 100), 1, self)
             self.entries_vboxes[accnt_index].addWidget(row)
         self.entries_vboxes[accnt_index].setSpacing(0)
@@ -300,6 +297,8 @@ class entrs(QWidget):
             btn_id = self.accnts_btn_group.checkedId()
             self.cache['accnt'] = None if btn_id == 0 else self.inputs.get('accnts')[btn_id - 1]
             self.ui.entrs_stacked_widget.setCurrentWidget(self.scroll_areas[btn_id])
+            # FIXME: Scroll area 不完全在updating。
+            print(self.ui.entrs_stacked_widget.currentWidget())
 
             # Update 收支数字显示 和 月份选择按钮显示的月份
             self.update_income_expenditure_display()
@@ -424,11 +423,15 @@ class entrs(QWidget):
             else:
                 original_cny_rate = 1.0 if original_currency == 'CNY' else exchange_rates.get(f'{original_currency.lower()}_cny')
                 target_cny_rate = 1.0 if currency == 'CNY' else exchange_rates.get(f'{currency.lower()}_cny')
-                if transaction_type == '收入':
-                    income_sum += amount * original_cny_rate / target_cny_rate
-                elif transaction_type == '支出':
-                    expenditure_sum += amount * original_cny_rate / target_cny_rate
-                    
+                try:
+                    if transaction_type == '收入':
+                        income_sum += amount * original_cny_rate / target_cny_rate
+                    elif transaction_type == '支出':
+                        expenditure_sum += amount * original_cny_rate / target_cny_rate
+                except TypeError:
+                    print(original_currency)
+                    print(exchange_rates.get(f'{original_currency.lower()}_cny'))
+                    print(original_cny_rate, target_cny_rate)
 
         return (income_sum, expenditure_sum)
 
