@@ -294,6 +294,7 @@ class entrs(QWidget):
 
 
         # Change monthly_balance according to currencies for 总账本
+        # FIXME: 总账本日结余显示错误
 
         # Populate the rows
         for entry in entries:

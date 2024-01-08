@@ -1,3 +1,5 @@
+''' 从已有数据倒推计算之前的monthly balances '''
+
 from pymongo import MongoClient
 from datetime import datetime, timedelta
 from collections import defaultdict
