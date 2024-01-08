@@ -5,7 +5,8 @@ from PySide2.QtCore import QObject, Signal
 from pymongo import MongoClient
 client = MongoClient('mongodb://localhost:27017/')
 db = client.entries
-collection = db.entries_collection
+entries_collection = db.entries_collection
+monthly_balances = db.monthly_balances
 
 days_of_the_week = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日']
 
@@ -45,13 +46,27 @@ def sys_stng_interface(var_name, new_val=None, recalculate:tuple=None):
 def accnts(new_val=None):
     ''' eg ['HSBC(7476)', '微信零钱', '现金'] '''
     return sys_stng_interface('accnts', new_val)
-accnts(collection.distinct('account'))
+# accnts(entries_collection.distinct('account'))
 
 # List of currencies
 def currs(new_val=None):
     ''' eg ['CNY', 'GBP', 'EUR'] '''
     return sys_stng_interface('currs', new_val)
-currs(collection.distinct('currency'))
+# currs(entries_collection.distinct('currency'))
+
+# Bind an account to a currency.
+def accnts_to_currs(new_val=None):
+    ''' eg {'HSBC(7476)': 'GBP', '微信零钱': 'CNY', '现金': 'GBP'} '''
+    return sys_stng_interface('accnts_to_currs', new_val)
+# return_dict = {}
+# accounts = entries_collection.distinct('account')
+# for account in accounts:
+#     query = {'account':account}
+#     entry = entries_collection.find_one(query)
+#     currency = entry.get('currency')
+#     return_dict[account] = currency
+# accnts_to_currs(return_dict)
+
 
 
 

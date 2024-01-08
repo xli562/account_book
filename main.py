@@ -1,48 +1,56 @@
 import pandas as pd
-from datetime import datetime
 from pymongo import MongoClient
-import numpy as np
+from datetime import datetime, timedelta
 
-# Function to read the Excel file and create a date to exchange rate mapping
-def read_exchange_rate(file_path, rate_column):
-    df = pd.read_excel(file_path)
-    df['Date'] = pd.to_datetime(df['Date'], format='%Y-%m-%d')
-    df.set_index('Date', inplace=True)
-    df.sort_index(inplace=True)
-    # Interpolate missing values
-    df.interpolate(method='linear', inplace=True)
-    return df[rate_column].to_dict()
-
-# Read exchange rate data from Excel files
-gbp_file_path = 'D:/Users/henry/Downloads/20220604-20240102_GBP to CNY.xlsx'
-eur_file_path = 'D:/Users/henry/Downloads/20220604-20240102_EUR to CNY.xlsx'
-
-gbp_cny_mapping = read_exchange_rate(gbp_file_path, 'Rates')
-eur_cny_mapping = read_exchange_rate(eur_file_path, 'Rates')
-
-# Connect to MongoDB
 client = MongoClient('mongodb://localhost:27017/')
-db = client.entries
-collection = db.entries_collection
+monthly_balances = client.entries.monthly_balances
 
-def update_exchange_rates():
-    for doc in collection.find():
-        # Parse the date in the document
-        doc_date = doc['date']
 
-        # Find the closest dates in the mappings
-        closest_gbp_date = min(gbp_cny_mapping.keys(), key=lambda d: abs(d - doc_date))
-        closest_eur_date = min(eur_cny_mapping.keys(), key=lambda d: abs(d - doc_date))
+start_month = datetime(2023, 12, 1)
+end_month = datetime(2022, 6, 1)
 
-        # Get the exchange rates for the closest dates
-        gbp_cny_rate = gbp_cny_mapping[closest_gbp_date]
-        eur_cny_rate = eur_cny_mapping[closest_eur_date]
+current_month = start_month
+for i in range(start_month.month - end_month.month):
+    current_month -= 
 
-        # Update the document with the exchange rates
-        exchange_rates = {
-            'gbp_cny': gbp_cny_rate,
-            'eur_cny': eur_cny_rate
-        }
-        collection.update_one({'_id': doc['_id']}, {'$set': {'exchange_rates': exchange_rates}})
 
-update_exchange_rates()
+document = {
+    'month': datetime(2023,12,1),
+    'balances': {
+        'HSBC(7476)':347.7,
+        'HSBC活期':2408.51,
+        'Lloyds ISA':10098.06,
+        'Lloyds(3719)':58.58,
+        '工商银行(3029)':2652.29,
+        '广州银行(2300)':8720.97,
+        '微信零钱':490.44,
+        '未指定':0.0,
+        '现金(英镑)':477.85
+    }
+}
+
+# template = {
+#     # '_id': ObjectId('...'),
+#     'date': datetime(2023, 12, 21),
+#     'transaction_type': '收入',
+#     'category': '理财',
+#     'amount': 4.59,
+#     'account': '广州银行(2300)',
+#     'currency': 'CNY',
+#     'exchange_rates': {
+#         'gbp_cny': 8.9858,
+#         'eur_cny': 7.7775
+#     },
+    
+#     # Optional:
+#     'remarks': '存钱利息',    # short, for display
+#     'details': '',   # long but can be left empty most of the time, for if I want to add anything that's too long to fit inside 'remarks'
+#     'time': '',
+#     'location': []
+# }
+
+monthly_balances.insert_one(document)
+monthly_balances.upd()
+# entries_collection.insert_one(template)
+
+print("Data insertion complete.")

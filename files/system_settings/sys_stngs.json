@@ -13,5 +13,16 @@
     "currs": [
         "CNY",
         "GBP"
-    ]
+    ],
+    "accnts_to_currs": {
+        "HSBC(7476)": "GBP",
+        "HSBC\u6d3b\u671f": "GBP",
+        "Lloyds ISA": "GBP",
+        "Lloyds(3719)": "GBP",
+        "\u5de5\u5546\u94f6\u884c(3029)": "CNY",
+        "\u5e7f\u5dde\u94f6\u884c(2300)": "CNY",
+        "\u5fae\u4fe1\u96f6\u94b1": "CNY",
+        "\u672a\u6307\u5b9a": "GBP",
+        "\u73b0\u91d1(\u82f1\u9551)": "GBP"
+    }
 }

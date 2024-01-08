@@ -4,3 +4,4 @@ files/database
 tests
 start_mongod.bat
 activate_venv.bat
+*明细.xlsx

@@ -1,0 +1,39 @@
+>>> 新的页面 / 功能
+    >>> 日结余显示
+
+    >>> 若transaction_type in (借款、还款、存钱、取钱)，则不计入收支统计，但计入进出账，用以计算余额 & 日结余，方便核账。
+        这些types写在files/sys_stngs中。
+
+    >>> applying fixed currency exchange rate inside date-range can be done by case-specific explicit coding for now.
+
+    >>> 任意关键词搜索账目功能
+
+    >>> create记账页面
+            类别选择页
+            输入键盘（独立widget，放在page_elements_setup里）
+
+        >>> 写联网爬取汇率的脚本，用于应用启动时自动补充database中汇率为空的条目，以及给 在软件中新记的帐 提供默认汇率。
+
+    >>> create统计页面
+        >>> 
+
+    >>> 添加货币功能
+        每添加一种货币需要导入该货币对人民币的历史汇率
+
+    >>> create ‘我的’页面
+        头像、昵称、记账总天数、记账总笔数、设置
+
+
+
+>>> un-sketchify
+    >>> 账户栏使用横向滚动布局，防止账户按钮的空间被压缩
+
+
+>>> 界面美化
+    >>> 分日行用不同颜色标出
+    修改RowWidget使之更customisable（行高、tuple中给出按顺序的Widget（可以是按钮或文字等，若str则默认为textLabel）、从右到左排还是从左往右排、左对齐、居中还是右对齐、Widget间间距（int或list，int则全部间距一致，None则自动间距）、可否被选中、高亮颜色、第几个高亮group）
+        >>> 按下ctrl再点击可选中多行，此时在收支按钮上按选定汇率显示总额。仅选中一行时不改变收支按钮的显示。双击一行进入编辑账目页面。
+    >>> 图标化显示。（transaction_type、搜索、日期选择等）
+
+>>> 功能改良
+    >>> 较花时间的计算移至后台线程中处理，GUI线程显示‘加载中’（可做成转圈或其它更有创意的动画），加载完了再终止‘加载中’显示。

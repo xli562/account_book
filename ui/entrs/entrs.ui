@@ -162,11 +162,18 @@
   <widget class="QDateEdit" name="month_selector_dedit">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>80</y>
-     <width>151</width>
-     <height>31</height>
+     <x>160</x>
+     <y>90</y>
+     <width>361</width>
+     <height>71</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>30</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
    </property>
    <property name="focusPolicy">
     <enum>Qt::WheelFocus</enum>
@@ -178,10 +185,10 @@
   <widget class="QCheckBox" name="apply_month_sel_globally_cbtn">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>140</y>
-     <width>151</width>
-     <height>31</height>
+     <x>530</x>
+     <y>90</y>
+     <width>191</width>
+     <height>71</height>
     </rect>
    </property>
    <property name="text">

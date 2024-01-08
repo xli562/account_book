@@ -212,6 +212,7 @@ class entrs(QWidget):
             self.ui.entrs_stacked_widget.addWidget(scroll_area)
 
             self.refresh_scroll_area(i)
+            
         self.ui.entrs_stacked_widget.setCurrentWidget(self.scroll_areas[0])
 
         self.set_widget_states_to_default()
@@ -226,7 +227,10 @@ class entrs(QWidget):
             accnt_index: index of the target account, as stored in constants.accnts
             accnt_index = 0 for all_accounts-view.'''
         # The account name, as a string | None.
-        accnt = self.cache.get('accnt')
+        if accnt_index == 0:
+            accnt = None
+        else:
+            accnt = self.inputs.get('accnts')[accnt_index-1]
         
         # Initialise the year and month indices
         year_index = self.cache.get('month_sels').get(accnt).year if year_index is None else year_index
@@ -245,30 +249,59 @@ class entrs(QWidget):
 
             # Query for documents with the specified account and date range
             if account is None:
-                query = {"date": {"$gte": start_date, "$lt": end_date}}
+                query = {"date": {"$gte": start_date, "$lte": end_date}}
             else:
                 query = {
                     "account": account,
-                    "date": {"$gte": start_date, "$lt": end_date}
+                    "date": {"$gte": start_date, "$lte": end_date}
                 }
 
-            return list(constants.collection.find(query))
+            return list(constants.entries_collection.find(query))
 
         entries = get_entrs_for_a_month(accnt, year_index, month_index)
 
-        # Reverse the list of entries so that it's in time descending order
-        entries.reverse()
+        # Sort entries in time descending order 
+        def getdate(ditn):
+            return ditn.get('date')
+        entries.sort(key=getdate, reverse=True)
 
-        # Populate the rows
+        # Preparations before populating the rows
         entry_date = dt.datetime(3000,1,1)
         ROW_HEIGHT = 50
-        for entry in entries:
 
+        # Find the monthly balance in the database for this month, else we would need to do this in every iteration.
+        # The monthly balance of a month is the balance at month's start.
+        query = {'month': dt.datetime(year_index, month_index, 1)}
+        monthly_balances:dict = constants.monthly_balances.find_one(query).get('balances')
+
+
+        if accnt is None:
+            monthly_balance = 0
+            exchange_rates = entries[0].get('exchange_rates')
+            for accnt, balance in monthly_balances.items():
+                curr = constants.accnts_to_currs().get(accnt)
+                if curr == self.cache.get('curr'):
+                    monthly_balance += balance
+                else:
+                    original_cny_rate = 1.0 if curr == 'CNY' else exchange_rates.get(f'{curr.lower()}_cny')
+                    target_cny_rate = 1.0 if self.cache.get('curr') == 'CNY' else exchange_rates.get(f'{self.cache.get("curr").lower()}_cny')
+                    monthly_balance += balance * original_cny_rate / target_cny_rate
+        else:
+            monthly_balance = monthly_balances.get(accnt)
+        
+            
+
+
+
+        # Change monthly_balance according to currencies for 总账本
+
+        # Populate the rows
+        for entry in entries:
             # Insert day-marking row.
             if entry_date > entry.get('date'):
                 entry_date = entry.get('date')
-                # TODO: 显示账户的日结余
-                daily_balance = self.calculate_sums(accnt, dt.datetime(2000,1,1), entry_date, self.cache['curr'])
+                daily_income_and_expenditure = self.calculate_sums(accnt, dt.datetime(entry_date.year,entry_date.month,1), entry_date, entry.get('currency'))
+                daily_balance = round(monthly_balance + daily_income_and_expenditure[0] - daily_income_and_expenditure[1], 2)
                 row = RowWidget([f'{entry_date.month}月{entry_date.day}日 {constants.days_of_the_week[entry_date.weekday()]}',
                                  daily_balance], 
                                 (ROW_HEIGHT, 500, 200), 
@@ -290,6 +323,8 @@ class entrs(QWidget):
 
 
 
+
+
     def connecting_dots(self):
         page_ready.sig.connect(self.on_page_load)
 
@@ -297,8 +332,6 @@ class entrs(QWidget):
             btn_id = self.accnts_btn_group.checkedId()
             self.cache['accnt'] = None if btn_id == 0 else self.inputs.get('accnts')[btn_id - 1]
             self.ui.entrs_stacked_widget.setCurrentWidget(self.scroll_areas[btn_id])
-            # FIXME: Scroll area 不完全在updating。
-            print(self.ui.entrs_stacked_widget.currentWidget())
 
             # Update 收支数字显示 和 月份选择按钮显示的月份
             self.update_income_expenditure_display()
@@ -309,7 +342,6 @@ class entrs(QWidget):
 
         # 月份选择按钮
         def on_sel_month_btn_click():
-            start_time = time.time()
             accnt = self.cache.get('accnt')
             if self.ui.month_selector_dedit.isVisible():
                 
@@ -339,12 +371,8 @@ class entrs(QWidget):
                 toggle_visibility(self.ui.apply_month_sel_globally_cbtn, True)
                 self.ui.month_selector_dedit.setDate(QDate(self.cache.get('month_sels').get(accnt)))
                 self.ui.apply_month_sel_globally_cbtn.setChecked(True)
-            
 
 
-            endtime = time.time() - start_time
-
-            # print(endtime)
         self.ui.sel_month_btn.clicked.connect(on_sel_month_btn_click)
         self.ui.month_selector_dedit.editingFinished.connect(on_sel_month_btn_click)
 
@@ -352,14 +380,23 @@ class entrs(QWidget):
         def on_currs_btn_group_click():
             self.cache['curr'] = self.currs_btn_group.checkedButton().text()
             self.update_income_expenditure_display()
-            self.refresh_scroll_area(self.accnts_btn_group.checkedId())
+            if self.cache.get('accnt') is None:
+                self.refresh_scroll_area(0)
         self.currs_btn_group.buttonClicked.connect(on_currs_btn_group_click)
     
     
+    # FIXME: See if on_page_load can be replaced by showEvent() somehow.
+    def showEvent(self, event):
+        super().showEvent(event)
+        self.set_widget_states_to_default()
+        for i in range(len(self.inputs.get('accnts')) + 1):
+            # self.refresh_scroll_area(i)
+            self.ui.entrs_stacked_widget.setCurrentWidget(i)
+        print('done')
 
     def on_page_load(self):
-        if constants.navigation_info.get('dest_page') == self.name:
-            self.set_widget_states_to_default()
+        pass
+        
 
 
 
@@ -390,7 +427,7 @@ class entrs(QWidget):
 
 
     
-    def calculate_sums(self, accnts:str|None, start_date:dt.datetime, end_date:dt.datetime, currency:str='GBP'):
+    def calculate_sums(self, accnts:str|None, start_date:dt.datetime, end_date:dt.datetime, currency:str='GBP') -> tuple:
         ''' Calculates the sum for a specified account, or a list of accounts, or all accounts (set accnts to None),
             within a specified time range (both ends inclusive), for a given currency. 
             Returns a tuple: (收入,支出)'''
@@ -408,7 +445,7 @@ class entrs(QWidget):
             query['account'] = {"$in": accnts} if isinstance(accnts, list) else accnts
 
         # Iterate through documents that match the query
-        for doc in constants.collection.find(query):
+        for doc in constants.entries_collection.find(query):
             amount = doc['amount']
             transaction_type = doc['transaction_type']
             original_currency = doc['currency'] if doc['currency'] != '未指定' else 'GBP'
