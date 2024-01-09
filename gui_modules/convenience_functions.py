@@ -10,7 +10,7 @@ from modules import constants
 
 
 def toggle_visibility(item, visibility:bool):
-    '''works for both widgets and layouts.'''
+    """works for both widgets and layouts."""
     widget = None
     layout = None
 

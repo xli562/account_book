@@ -7,8 +7,8 @@ from calendar import monthrange
 
 
 def start_and_end_of_month(day:dt.datetime) -> tuple:
-    ''' Takes a datetime object,
-        Returns start and end of the natural month. '''
+    """ Takes a datetime object,
+        Returns start and end of the natural month. """
     start_of_month = dt.datetime(day.year, day.month, 1)
     end_of_month_day = monthrange(day.year, day.month)[1]
     end_of_month = dt.datetime(day.year, day.month, end_of_month_day)
@@ -19,7 +19,7 @@ def start_and_end_of_month(day:dt.datetime) -> tuple:
 
 
 def colour_print(colour:str, text:str, to_screen=False):
-    '''prints with colour'''
+    """prints with colour"""
     text = str(text)
     if to_screen == True:
         constants.print_sig.sig.emit(text)

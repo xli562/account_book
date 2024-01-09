@@ -19,12 +19,12 @@ backup_sys_stngs_path = './files/system_settings/sys_stngs backup.json'
 
 
 def sys_stng_interface(var_name, new_val=None, recalculate:tuple=None):
-    ''' Read/write data from/to sys_stngs.json, so that the 
+    """ Read/write data from/to sys_stngs.json, so that the 
     machine remembers its settings when powered off.
     Execution time: 0-0.001s on the Windows machine.
     
     recalculate: recalculates a value dependant on other sys stngs.
-    eg var_name = deflt_times, recalculate = ('empty', empty_times()[current_rv()])'''
+    eg var_name = deflt_times, recalculate = ('empty', empty_times()[current_rv()])"""
     with open(sys_stngs_path, 'r') as f:
         settings = json.load(f)
 
@@ -44,19 +44,19 @@ def sys_stng_interface(var_name, new_val=None, recalculate:tuple=None):
 
 # List of accounts
 def accnts(new_val=None):
-    ''' eg ['HSBC(7476)', '微信零钱', '现金'] '''
+    """ eg ['HSBC(7476)', '微信零钱', '现金'] """
     return sys_stng_interface('accnts', new_val)
 # accnts(entries_collection.distinct('account'))
 
 # List of currencies
 def currs(new_val=None):
-    ''' eg ['CNY', 'GBP', 'EUR'] '''
+    """ eg ['CNY', 'GBP', 'EUR'] """
     return sys_stng_interface('currs', new_val)
 # currs(entries_collection.distinct('currency'))
 
 # Bind an account to a currency.
 def accnts_to_currs(new_val=None):
-    ''' eg {'HSBC(7476)': 'GBP', '微信零钱': 'CNY', '现金': 'GBP'} '''
+    """ eg {'HSBC(7476)': 'GBP', '微信零钱': 'CNY', '现金': 'GBP'} """
     return sys_stng_interface('accnts_to_currs', new_val)
 # return_dict = {}
 # accounts = entries_collection.distinct('account')
@@ -71,7 +71,7 @@ def accnts_to_currs(new_val=None):
 
 
 class AutoCompletionHelper():
-    '''enabes vscode to autocomplete names while typing'''
+    """enabes vscode to autocomplete names while typing"""
     
     # Basic operations
     nop = 'nop'
@@ -125,16 +125,16 @@ d = AutoCompletionHelper()
 
 # Default time constants. The synthesis will by default use these times in protocols and manual commands.
 def empty_times(new_val=None):
-    ''' eg [7, 20, 30] '''
+    """ eg [7, 20, 30] """
     return sys_stng_interface('empty_times', new_val)
 
 
 
 class GoToSignal(QObject):
-    '''A global signal that can be passed between classes,
+    """A global signal that can be passed between classes,
     to tell the main statcked layout to display the active window.
     Only one instance of this class can ever be created, 
-    to make sure the same signal is used in the whole program.'''
+    to make sure the same signal is used in the whole program."""
     sig = Signal()    # 1st str is src, 2nd str is dest
 
     # make sure only one instance is ever created
@@ -151,8 +151,8 @@ page_stack = ['home'] # A bit similar to the call stack of a program's functions
 
 
 class PageReady(QObject):
-    '''For synchronisation.
-    Emitted when the next page is loaded by the EmptyFrameBackground.'''
+    """For synchronisation.
+    Emitted when the next page is loaded by the EmptyFrameBackground."""
     sig = Signal()    # 1st str is src, 2nd str is dest
 
     # make sure only one instance is ever created

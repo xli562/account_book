@@ -7,10 +7,10 @@ from modules.functional_convenience import *
 
 
 class RowWidget(QWidget):
-    ''' The widget for some scrollareas' rows, eg the amino acids page. '''
+    """ The widget for some scrollareas' rows, eg the amino acids page. """
 
     def __init__(self, row_data_list:list, row_sizes:tuple, scroll_group, parent, raw_data=None):
-        ''' row_sizes: (height, width_1, width_2, ... , width_n)'''
+        """ row_sizes: (height, width_1, width_2, ... , width_n)"""
         super().__init__()
         self.parent = parent
 

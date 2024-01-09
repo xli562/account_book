@@ -8,6 +8,7 @@ from PySide2.QtGui import QPixmap, QFontDatabase
 
 
 from modules.functional_convenience import *
+from modules.calculations import *
 from modules import constants
 from gui_modules.page_elements_setup import *
 from gui_modules.convenience_functions import *
@@ -25,9 +26,9 @@ QResource.registerResource('resources_rc.rcc')
 
 
 def navigate(src_page:str, dest_page:str, ret_to_page:str, src_btn:str, extras:dict=None):
-    '''Emits signal to navigate to new page
+    """Emits signal to navigate to new page
     modifies constants.navigation_info, 
-    with the option to pass extra temporary arguments.'''
+    with the option to pass extra temporary arguments."""
 
     constants.navigation_info = {'src_page':src_page, 
                                  'dest_page':dest_page, 
@@ -59,11 +60,11 @@ def navigate_back(src_page, ret_to_page, src_btn, extras:dict=None):
 
 
 class home(QWidget):
-    ''' The home page which shows upon opening of app.
+    """ The home page which shows upon opening of app.
         Input: Initial page.
         Output: Buttons navigate to different pages.
                 No data output.
-    '''
+    """
     def __init__(self):
         super().__init__()
         self.name = 'home'
@@ -72,7 +73,7 @@ class home(QWidget):
         self.connecting_dots()
 
     def __new__(cls, *args, **kwargs):
-        '''Make sure only one instance is ever created.'''
+        """Make sure only one instance is ever created."""
         if not hasattr(cls, '_instance'):
             cls._instance = super(home, cls).__new__(cls, *args, **kwargs)
         return cls._instance
@@ -80,7 +81,7 @@ class home(QWidget):
 
 
     def init_variables(self):
-        ''' Initialises pages and the input buffer. '''
+        """ Initialises pages and the input buffer. """
         self.pages = {'entrs':entrs(),
                       'stats':stats()}
 
@@ -113,7 +114,7 @@ class home(QWidget):
 
 
     def connecting_dots(self):
-        '''connecting signals and slots'''
+        """connecting signals and slots"""
         self.ui.entrs_rbtn.clicked.connect(lambda:
                 self.ui.home_stacked_widget.setCurrentWidget(self.pages.get('entrs').ui))
         self.ui.stats_rbtn.clicked.connect(lambda:
@@ -123,10 +124,10 @@ class home(QWidget):
 
 
 class entrs(QWidget):
-    ''' Entries, 明细页。
+    """ Entries, 明细页。
         Input: 
         Output:
-    '''
+    """
     def __init__(self):
         super().__init__()
         self.name = 'entrs'
@@ -135,7 +136,7 @@ class entrs(QWidget):
         self.connecting_dots()
     
     def __new__(cls, *args, **kwargs):
-        '''Make sure only one instance is ever created.'''
+        """Make sure only one instance is ever created."""
         if not hasattr(cls, '_instance'):
             cls._instance = super(entrs, cls).__new__(cls, *args, **kwargs)
         return cls._instance
@@ -143,7 +144,7 @@ class entrs(QWidget):
 
 
     def init_variables(self):
-        ''' Initialises pages and/or the input buffer. '''
+        """ Initialises pages and/or the input buffer. """
         self.inputs = {
             'accnts':constants.accnts(),
             'currs':constants.currs()}
@@ -223,9 +224,9 @@ class entrs(QWidget):
 
 
     def refresh_scroll_area(self, accnt_index, year_index=None, month_index=None):
-        ''' Refresh the scrolled widgets. 
+        """ Refresh the scrolled widgets. 
             accnt_index: index of the target account, as stored in constants.accnts
-            accnt_index = 0 for all_accounts-view.'''
+            accnt_index = 0 for all_accounts-view."""
         # The account name, as a string | None.
         if accnt_index == 0:
             accnt = None
@@ -242,8 +243,8 @@ class entrs(QWidget):
         self.entries_vboxes[accnt_index] = QVBoxLayout(self.scroll_containers[accnt_index])
 
         def get_entrs_for_a_month(account:str, year, month) -> list:
-            ''' Finds entries for a given account within a natural month. 
-                Returns a list of documents. '''
+            """ Finds entries for a given account within a natural month. 
+                Returns a list of documents. """
             # Start and end dates for the month
             start_date, end_date = start_and_end_of_month(dt.datetime(year, month, 1))
 
@@ -265,7 +266,7 @@ class entrs(QWidget):
             return ditn.get('date')
         entries.sort(key=getdate, reverse=True)
 
-        # Preparations before populating the rows
+        # Prepare to populate the rows
         entry_date = dt.datetime(3000,1,1)
         ROW_HEIGHT = 50
 
@@ -274,34 +275,51 @@ class entrs(QWidget):
         query = {'month': dt.datetime(year_index, month_index, 1)}
         monthly_balances:dict = constants.monthly_balances.find_one(query).get('balances')
 
+        if accnt is not None:
 
-        if accnt is None:
+            # If not 总账本, use monthly balance directly
+            monthly_balance = monthly_balances.get(accnt)
+        else:
+            # Exchange monthly_balance into the present currency for 总账本
+            # For reference only: rates are determined using the average rate.
+
+            # Get the mean exchange rate of the month
+            rate_sums = {}
+            rate_counts = {}
+
+            # Iterate through entries
+            for entry in entries:
+                exchange_rates = entry.get('exchange_rates', {})
+
+                # Process each key-value pair in 'exchange_rates'
+                for key, value in exchange_rates.items():
+                    rate_sums[key] = rate_sums.get(key, 0) + value
+                    rate_counts[key] = rate_counts.get(key, 0) + 1
+
+            # Calculate the mean exchange rate for all existant keys
+            exchange_rates = {key: rate_sums[key] / rate_counts[key] for key in rate_sums}
+
             monthly_balance = 0
-            exchange_rates = entries[0].get('exchange_rates')
-            for accnt, balance in monthly_balances.items():
-                curr = constants.accnts_to_currs().get(accnt)
+                
+            for account, balance in monthly_balances.items():
+                curr = constants.accnts_to_currs().get(account)
                 if curr == self.cache.get('curr'):
                     monthly_balance += balance
                 else:
                     original_cny_rate = 1.0 if curr == 'CNY' else exchange_rates.get(f'{curr.lower()}_cny')
                     target_cny_rate = 1.0 if self.cache.get('curr') == 'CNY' else exchange_rates.get(f'{self.cache.get("curr").lower()}_cny')
                     monthly_balance += balance * original_cny_rate / target_cny_rate
-        else:
-            monthly_balance = monthly_balances.get(accnt)
-        
             
+        
 
-
-
-        # Change monthly_balance according to currencies for 总账本
-        # FIXME: 总账本日结余显示错误
 
         # Populate the rows
         for entry in entries:
+
             # Insert day-marking row.
             if entry_date > entry.get('date'):
                 entry_date = entry.get('date')
-                daily_income_and_expenditure = self.calculate_sums(accnt, dt.datetime(entry_date.year,entry_date.month,1), entry_date, entry.get('currency'))
+                daily_income_and_expenditure = calculate_sums(accnt, dt.datetime(entry_date.year,entry_date.month,1), entry_date, entry.get('currency'))
                 daily_balance = round(monthly_balance + daily_income_and_expenditure[0] - daily_income_and_expenditure[1], 2)
                 row = RowWidget([f'{entry_date.month}月{entry_date.day}日 {constants.days_of_the_week[entry_date.weekday()]}',
                                  daily_balance], 
@@ -409,18 +427,18 @@ class entrs(QWidget):
     
 
     def update_income_expenditure_display(self):
-        ''' Update收支数字显示 '''
+        """ Update收支数字显示 """
         accnt = self.cache.get('accnt')
         month_start, month_end = start_and_end_of_month(self.cache.get('month_sels')[accnt])
 
         # 计算收支
-        income, expenditure = self.calculate_sums(accnt, month_start, month_end, self.cache['curr'])
+        income, expenditure = calculate_sums(accnt, month_start, month_end, self.cache['curr'])
         self.ui.incomes_btn.setText(f'收入\n{round(income, 2)}')
         self.ui.expenditures_btn.setText(f'支出\n{round(expenditure, 2)}')
 
 
     def update_sel_month_btn_text(self):
-        ''' Update月份选择按钮显示的月份 '''
+        """ Update月份选择按钮显示的月份 """
         accnt = self.cache.get('accnt')
         month_sels = self.cache.get('month_sels')
         date = month_sels.get(accnt)
@@ -428,59 +446,14 @@ class entrs(QWidget):
 
 
     
-    def calculate_sums(self, accnts:str|None, start_date:dt.datetime, end_date:dt.datetime, currency:str='GBP') -> tuple:
-        ''' Calculates the sum for a specified account, or a list of accounts, or all accounts (set accnts to None),
-            within a specified time range (both ends inclusive), for a given currency. 
-            Returns a tuple: (收入,支出)'''
-        income_sum = 0
-        expenditure_sum = 0
-
-        # Default currency to GBP
-        currency = 'GBP' if currency == '未指定' else currency
-
-        # Create query for date range and accounts
-        query = {
-            "date": {"$gte": start_date, "$lte": end_date}
-        }
-        if accnts is not None:
-            query['account'] = {"$in": accnts} if isinstance(accnts, list) else accnts
-
-        # Iterate through documents that match the query
-        for doc in constants.entries_collection.find(query):
-            amount = doc['amount']
-            transaction_type = doc['transaction_type']
-            original_currency = doc['currency'] if doc['currency'] != '未指定' else 'GBP'
-            exchange_rates:dict = doc.get('exchange_rates', {})
-
-            # Currency conversion
-            if original_currency == currency:
-                if transaction_type == '收入':
-                    income_sum += amount
-                elif transaction_type == '支出':
-                    expenditure_sum += amount
-            else:
-                original_cny_rate = 1.0 if original_currency == 'CNY' else exchange_rates.get(f'{original_currency.lower()}_cny')
-                target_cny_rate = 1.0 if currency == 'CNY' else exchange_rates.get(f'{currency.lower()}_cny')
-                try:
-                    if transaction_type == '收入':
-                        income_sum += amount * original_cny_rate / target_cny_rate
-                    elif transaction_type == '支出':
-                        expenditure_sum += amount * original_cny_rate / target_cny_rate
-                except TypeError:
-                    print(original_currency)
-                    print(exchange_rates.get(f'{original_currency.lower()}_cny'))
-                    print(original_cny_rate, target_cny_rate)
-
-        return (income_sum, expenditure_sum)
-
-
+    
 
 
 class stats(QWidget):
-    ''' Statistics and chatrs, 统计信息与图表。
+    """ Statistics and chatrs, 统计信息与图表。
         Input: 
         Output:
-    '''
+    """
     def __init__(self):
         super().__init__()
         self.name = 'stats'
@@ -488,7 +461,7 @@ class stats(QWidget):
         self.connecting_dots()
     
     def __new__(cls, *args, **kwargs):
-        '''Make sure only one instance is ever created.'''
+        """Make sure only one instance is ever created."""
         if not hasattr(cls, '_instance'):
             cls._instance = super(stats, cls).__new__(cls, *args, **kwargs)
         return cls._instance
@@ -520,9 +493,9 @@ class stats(QWidget):
 
 
 class EmptyFrameBackground(QWidget):
-    '''An empty QWidget to put all of the windows upon.
+    """An empty QWidget to put all of the windows upon.
     Switching between windows is achieved by 
-    hiding / showing child windows (ie widgets).'''
+    hiding / showing child windows (ie widgets)."""
     def __init__(self):
         super().__init__()
         self.init_variables()
@@ -530,7 +503,7 @@ class EmptyFrameBackground(QWidget):
         self.connecting_dots()
     
     def __new__(cls, *args, **kwargs):
-        '''Make sure only one instance is ever created.'''
+        """Make sure only one instance is ever created."""
         if not hasattr(cls, '_instance'):
             cls._instance = super(EmptyFrameBackground, cls).__new__(cls, *args, **kwargs)
         return cls._instance

@@ -19,7 +19,7 @@ class account:
 
 
     def __str__(self) -> str:
-        ''' 借记卡: HSBC(7476) 英国卡, 余额 81.35 GBP'''
+        """ 借记卡: HSBC(7476) 英国卡, 余额 81.35 GBP"""
         retstr = f'{self._account_type}: {self._name}'
         if is_bank(self._account_type):
             retstr += f'({self._last_4_digits})'

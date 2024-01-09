@@ -6,7 +6,7 @@ class template(QWidget):
         self.connecting_dots()
     
     def __new__(cls, *args, **kwargs):
-        '''Make sure only one instance is ever created.'''
+        """Make sure only one instance is ever created."""
         if not hasattr(cls, '_instance'):
             cls._instance = super(template, cls).__new__(cls, *args, **kwargs)
         return cls._instance
