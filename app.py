@@ -165,22 +165,48 @@ class entrs(QWidget):
         file.open(QFile.ReadOnly)
         self.ui = loader.load(file, self)
         file.close()
-    
-        # Add a rbtn for each account
+
+        # Set up the accounts' scroll area
+        self.accnts_scroll_area = QScrollArea(self.ui.accnts_widget)
+        self.accnts_scroll_area.setObjectName('accnts_scroll_area')
+        self.accnts_scroll_area.setFixedSize(981, 101)
+        self.accnts_scroll_container = QWidget(self.accnts_scroll_area)
+        self.accnts_scroll_container.setObjectName('accnts_scroll_container')
+        self.accounts_hbox = QHBoxLayout(self.accnts_scroll_container)
+        self.accounts_hbox.setObjectName('accounts_hbox')
+        self.accnts_scroll_area.setWidget(self.accnts_scroll_container)
+
+        # Create container in memory to store account buttons
         self.accnt_rbtns = []
         self.accnts_btn_group = QButtonGroup(self.ui)     # Accounts button group
-        self.accnts_btn_group.addButton(self.ui.accnt_0_rbtn, 0)
+        
+        # Add an rbtn for 总账本
+        accnt_rbtn = QRadioButton('总账本')
+        accnt_rbtn.setObjectName('accnt_0_rbtn')
+        self.accnt_rbtns.append(accnt_rbtn)
+        self.accounts_hbox.addWidget(accnt_rbtn)
+        self.accnts_btn_group.addButton(accnt_rbtn, 0)
         self.accnts_btn_group.button(0).setChecked(True)
+
+        # Add an rbtn for each account
+        total_width = 0          # total width of all buttons
+        total_width += accnt_rbtn.sizeHint().width()
         i = 0
         for accnt in self.inputs.get('accnts'):
             i += 1
             accnt_rbtn = QRadioButton(accnt)
             accnt_rbtn.setObjectName(f'accnt_{i}_rbtn')
+            accnt_rbtn.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Expanding)
+            accnt_rbtn.setFixedWidth(accnt_rbtn.sizeHint().width())
+            total_width += accnt_rbtn.sizeHint().width()
             self.accnt_rbtns.append(accnt_rbtn)
-            self.ui.accnt_rbtns_hbox.addWidget(accnt_rbtn)
+            self.accounts_hbox.addWidget(accnt_rbtn)
             self.accnts_btn_group.addButton(accnt_rbtn, i)
 
-        # Add a rbtn for each currency
+        # readjust the scroll container's size
+        self.accnts_scroll_container.setFixedSize(int(total_width*1.1), 80)
+
+        # Add an rbtn for each currency
         self.curr_rbtns = []
         self.currs_btn_group = QButtonGroup(self.ui)
         i = 0
@@ -194,17 +220,17 @@ class entrs(QWidget):
         self.currs_btn_group.button(0).setChecked(True)
 
         # Initialise the scroll areas for the entries
-        self.scroll_areas = []
-        self.scroll_containers = []
+        self.entrs_scroll_areas = []
+        self.entrs_scroll_containers = []
         self.entries_vboxes = []
         for i in range(len(self.inputs.get('accnts'))+1):   # '+1' to accommodate the overall view.
             scroll_area = QScrollArea(self.ui.entrs_stacked_widget)
             scroll_area.setObjectName(f'scroll_area{i}')
-            self.scroll_areas.append(scroll_area)
+            self.entrs_scroll_areas.append(scroll_area)
 
             scroll_container = QWidget(scroll_area)
             scroll_container.setObjectName(f'scroll_container_{i}')
-            self.scroll_containers.append(scroll_container)
+            self.entrs_scroll_containers.append(scroll_container)
 
             entries_vbox = QVBoxLayout(scroll_container)
             entries_vbox.setObjectName(f'scrolled_vbox_{i}')
@@ -212,9 +238,9 @@ class entrs(QWidget):
 
             self.ui.entrs_stacked_widget.addWidget(scroll_area)
 
-            self.refresh_scroll_area(i)
+            self.refresh_entrs_scroll_area(i)
             
-        self.ui.entrs_stacked_widget.setCurrentWidget(self.scroll_areas[0])
+        self.ui.entrs_stacked_widget.setCurrentWidget(self.entrs_scroll_areas[0])
 
         self.set_widget_states_to_default()
 
@@ -223,8 +249,13 @@ class entrs(QWidget):
 
 
 
-    def refresh_scroll_area(self, accnt_index, year_index=None, month_index=None):
-        """ Refresh the scrolled widgets. 
+    def refresh_accnts_scroll_area(self):
+        """ Refresh the scrolled accounts buttons. """
+
+
+
+    def refresh_entrs_scroll_area(self, accnt_index, year_index=None, month_index=None):
+        """ Refresh the scrolled entry widgets. 
             accnt_index: index of the target account, as stored in constants.accnts
             accnt_index = 0 for all_accounts-view."""
         # The account name, as a string | None.
@@ -238,9 +269,9 @@ class entrs(QWidget):
         month_index = self.cache.get('month_sels').get(accnt).month if month_index is None else month_index
 
         # Delete the old scroll area
-        self.scroll_containers[accnt_index].destroy()
-        self.scroll_containers[accnt_index] = QWidget()
-        self.entries_vboxes[accnt_index] = QVBoxLayout(self.scroll_containers[accnt_index])
+        self.entrs_scroll_containers[accnt_index].destroy()
+        self.entrs_scroll_containers[accnt_index] = QWidget()
+        self.entries_vboxes[accnt_index] = QVBoxLayout(self.entrs_scroll_containers[accnt_index])
 
         def get_entrs_for_a_month(account:str, year, month) -> list:
             """ Finds entries for a given account within a natural month. 
@@ -273,7 +304,8 @@ class entrs(QWidget):
         # Find the monthly balance in the database for this month, else we would need to do this in every iteration.
         # The monthly balance of a month is the balance at month's start.
         query = {'month': dt.datetime(year_index, month_index, 1)}
-        monthly_balances:dict = constants.monthly_balances.find_one(query).get('balances')
+        result = constants.monthly_balances.find_one(query)
+        monthly_balances:dict = result.get('balances') if result is not None else {}
 
         if accnt is not None:
 
@@ -335,10 +367,10 @@ class entrs(QWidget):
             self.entries_vboxes[accnt_index].addWidget(row)
         self.entries_vboxes[accnt_index].setSpacing(0)
 
-        self.scroll_areas[accnt_index].update()
+        self.entrs_scroll_areas[accnt_index].update()
 
-        self.scroll_areas[accnt_index].setWidgetResizable(True)
-        self.scroll_areas[accnt_index].setWidget(self.scroll_containers[accnt_index])
+        self.entrs_scroll_areas[accnt_index].setWidgetResizable(True)
+        self.entrs_scroll_areas[accnt_index].setWidget(self.entrs_scroll_containers[accnt_index])
 
 
 
@@ -350,7 +382,7 @@ class entrs(QWidget):
         def on_accnts_btn_group_click():
             btn_id = self.accnts_btn_group.checkedId()
             self.cache['accnt'] = None if btn_id == 0 else self.inputs.get('accnts')[btn_id - 1]
-            self.ui.entrs_stacked_widget.setCurrentWidget(self.scroll_areas[btn_id])
+            self.ui.entrs_stacked_widget.setCurrentWidget(self.entrs_scroll_areas[btn_id])
 
             # Update 收支数字显示 和 月份选择按钮显示的月份
             self.update_income_expenditure_display()
@@ -376,7 +408,7 @@ class entrs(QWidget):
                     self.update_sel_month_btn_text()
                     self.update_income_expenditure_display()
                     for i in range(len(self.inputs.get('accnts')) + 1):
-                        self.refresh_scroll_area(i, selected_date.year, selected_date.month)
+                        self.refresh_entrs_scroll_area(i, selected_date.year, selected_date.month)
                 
                 # Otherwise only update month selection for the active account
                 else:
@@ -384,7 +416,7 @@ class entrs(QWidget):
                     self.cache['month_sels'][accnt] = selected_date
                     self.update_sel_month_btn_text()
                     self.update_income_expenditure_display()
-                    self.refresh_scroll_area(btn_id, selected_date.year, selected_date.month)
+                    self.refresh_entrs_scroll_area(btn_id, selected_date.year, selected_date.month)
             else:
                 toggle_visibility(self.ui.month_selector_dedit, True)
                 toggle_visibility(self.ui.apply_month_sel_globally_cbtn, True)
@@ -400,7 +432,7 @@ class entrs(QWidget):
             self.cache['curr'] = self.currs_btn_group.checkedButton().text()
             self.update_income_expenditure_display()
             if self.cache.get('accnt') is None:
-                self.refresh_scroll_area(0)
+                self.refresh_entrs_scroll_area(0)
         self.currs_btn_group.buttonClicked.connect(on_currs_btn_group_click)
     
     

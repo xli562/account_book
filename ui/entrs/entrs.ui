@@ -44,34 +44,6 @@
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="horizontalLayoutWidget_2">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>170</y>
-     <width>981</width>
-     <height>80</height>
-    </rect>
-   </property>
-   <layout class="QHBoxLayout" name="accnt_rbtns_hbox">
-    <item>
-     <widget class="QRadioButton" name="accnt_0_rbtn">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="text">
-       <string>总账本</string>
-      </property>
-      <property name="checked">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-   </layout>
-  </widget>
   <widget class="QPushButton" name="sel_month_btn">
    <property name="geometry">
     <rect>
@@ -145,9 +117,9 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>260</y>
+     <y>280</y>
      <width>981</width>
-     <height>861</height>
+     <height>841</height>
     </rect>
    </property>
    <property name="frameShape">
@@ -193,6 +165,16 @@
    </property>
    <property name="text">
     <string>应用到所有账户</string>
+   </property>
+  </widget>
+  <widget class="QWidget" name="accnts_widget" native="true">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>170</y>
+     <width>981</width>
+     <height>101</height>
+    </rect>
    </property>
   </widget>
  </widget>
