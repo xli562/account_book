@@ -572,11 +572,11 @@ class EmptyFrameBackground(QWidget):
             if dest == page_name:
                 self.base_stacked_layout.setCurrentWidget(page.ui)
 
-                colour_print('pink', '\n==================== Page loaded ====================')
-                colour_print('pink', f"src_page = {nav.get('src_page')}, dest_page = {nav.get('dest_page')}, ret_to_page = {nav.get('ret_to_page')}, src_btn = {nav.get('src_btn')}")
-                colour_print('pink', f'Full info: {nav}')
-                colour_print('pink', f'Page stack: {constants.page_stack}')
-                colour_print('yellow', f'Flags: pause request={constants.pause_request.is_set()}, last_input_ckecked={constants.last_ledit_input_checked}\n')
+                color_print('pink', '\n==================== Page loaded ====================')
+                color_print('pink', f"src_page = {nav.get('src_page')}, dest_page = {nav.get('dest_page')}, ret_to_page = {nav.get('ret_to_page')}, src_btn = {nav.get('src_btn')}")
+                color_print('pink', f'Full info: {nav}')
+                color_print('pink', f'Page stack: {constants.page_stack}')
+                color_print('yellow', f'Flags: pause request={constants.pause_request.is_set()}, last_input_ckecked={constants.last_ledit_input_checked}\n')
 
                 
                 break   # Stop the search for the target page if the target page is found

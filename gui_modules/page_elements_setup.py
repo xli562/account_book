@@ -7,7 +7,10 @@ from modules.functional_convenience import *
 
 
 class RowWidget(QWidget):
-    """ The widget for some scrollareas' rows, eg the amino acids page. """
+    """ The widget for a row. """
+
+    
+
 
     def __init__(self, row_data_list:list, row_sizes:tuple, scroll_group, parent, raw_data=None):
         """ row_sizes: (height, width_1, width_2, ... , width_n)"""
@@ -40,6 +43,20 @@ class RowWidget(QWidget):
         
         self.setLayout(hbox)
         self.setStyleSheet("background-color: none;")
+
+    def highlight(self, color='lightblue'):
+        """ Sets row background color. """
+
+        # De-highlight the previous row
+        if self.parent.current_highlighted_rows[self.scroll_group-1]:
+            self.parent.current_highlighted_rows[self.scroll_group-1].setStyleSheet("background-color: none;")
+
+        # Highlight the clicked widget (row)
+        self.setStyleSheet(f"background-color: {color};")
+        self.parent.current_highlighted_rows[self.scroll_group-1] = self  # Update the currently highlighted row
+
+    def mousePressEvent(self, event):
+        self.highlight()
 
     def __repr__(self):
         return f'{self.content_list} in group {self.scroll_group}'
