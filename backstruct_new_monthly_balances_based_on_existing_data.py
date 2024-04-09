@@ -7,10 +7,12 @@ from collections import defaultdict
 client = MongoClient('mongodb://localhost:27017/')
 db = client.entries
 
+
+
 entries_collection = db.entries_collection
 balances_collection = db.monthly_balances
 balances_collection.delete_many({
-            'month': {'$lte': datetime(2023,11,1)}
+            'month': {'$lte': datetime(2024,3,1)}
         })
 
 def update_monthly_balances():
@@ -18,7 +20,7 @@ def update_monthly_balances():
     balances_collection = db.monthly_balances
 
     # Fetch the starting balance for December 2023
-    december_2023_balance = balances_collection.find_one({'month': datetime(2023, 12, 1)})
+    december_2023_balance = balances_collection.find_one({'month': datetime(2024, 4, 1)})
     if not december_2023_balance:
         raise Exception("Starting balance for December 2023 not found.")
 

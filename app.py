@@ -168,6 +168,7 @@ class entrs(QWidget):
 
         # Set up the accounts' scroll area
         self.accnts_scroll_area = QScrollArea(self.ui.accnts_widget)
+        self.accnts_scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.accnts_scroll_area.setObjectName('accnts_scroll_area')
         self.accnts_scroll_area.setFixedSize(981, 101)
         self.accnts_scroll_container = QWidget(self.accnts_scroll_area)
