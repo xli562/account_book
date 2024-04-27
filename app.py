@@ -14,6 +14,18 @@ from gui_modules.page_elements_setup import *
 from gui_modules.convenience_functions import *
 
 
+# FIXME: 2024-04-09
+# >> Each time data is imported from Shark, the accounts to each entry
+# need to be manually inserted to the excel file. 
+# -> Solution: import mpre regularly.
+# >> After the above step, the balance at start of month need to be calculated by 
+# hand and inputted to the backstruct function, in order to get the 
+# previous months' starting balances.
+# -> Solution: Write code to calculate the starting balance of a month 
+# based on the current date and current balance. This would still need 
+# manual input of the current balance though.
+# >> Exchange rates need to be downloaded manually.
+
 
 # Global variables in the scope of app.py
 # To save typing constants.xxx every time.
@@ -362,7 +374,8 @@ class entrs(QWidget):
                 self.entries_vboxes[accnt_index].addWidget(row)
 
             entry_category = entry.get('category')
-            entry_remarks = entry.get('remarks')
+            entry_remarks = str(entry.get('remarks'))
+            entry_remarks = '' if entry_remarks == 'nan' else entry_remarks
             entry_amount = entry.get('amount') if entry.get('transaction_type') == '收入' else -entry.get('amount')
             row = RowWidget([entry_category, entry_remarks, entry_amount], (ROW_HEIGHT, 100, 500, 100), 1, self)
             self.entries_vboxes[accnt_index].addWidget(row)
